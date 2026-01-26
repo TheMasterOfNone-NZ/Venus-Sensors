@@ -1,0 +1,24 @@
+{
+  "tanks": [
+    {
+      "capacity": 0.06,
+      "fluid_type": 1,
+      "custom_name": "Fresh Water"
+    },
+    {
+      "capacity": 100.0,
+      "fluid_type": 0,
+      "custom_name": "Fuel"
+    },
+    {
+      "capacity": 0.01,
+      "fluid_type": 2,
+      "custom_name": "Waste Water"
+    },
+    {
+      "capacity": 100.0,
+      "fluid_type": 5,
+      "custom_name": "Black Water"
+    }
+  ]
+}

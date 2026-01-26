@@ -1,0 +1,4 @@
+#!/bin/sh
+exec 2>&1
+sleep 10
+exec /usr/bin/python3 /data/dbus-tank-sensor/tank_service.py
