@@ -2,3 +2,4 @@
 # Create service links on boot
 ln -sf /data/service/tank-sensor /service/tank-sensor
 ln -sf /data/service/bme280 /service/bme280
+bash /data/apps/dbus-serialbattery/enable.sh > /data/apps/dbus-serialbattery/startup.log 2>&1 &

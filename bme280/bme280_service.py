@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 BME280 Service for Venus OS
-Uses direct I2C file operations - no external libraries needed
+Displays temperature with pressure in the name
 """
 import sys
 import os
@@ -121,21 +121,21 @@ class BME280Service:
     def __init__(self):
         self.bme280 = BME280(I2C_PORT, I2C_ADDRESS)
         
-        # Temperature service
-        self.temp_service = VeDbusService('com.victronenergy.temperature.bme280_temp', register=False)
-        self.temp_service.add_path('/Mgmt/ProcessName', 'bme280_service')
-        self.temp_service.add_path('/Mgmt/ProcessVersion', '1.0')
-        self.temp_service.add_path('/Mgmt/Connection', 'I2C')
-        self.temp_service.add_path('/DeviceInstance', 30)
-        self.temp_service.add_path('/ProductId', 0)
-        self.temp_service.add_path('/ProductName', 'BME280 Temperature')
-        self.temp_service.add_path('/FirmwareVersion', '1.0')
-        self.temp_service.add_path('/Connected', 1)
-        self.temp_service.add_path('/Temperature', 0)
-        self.temp_service.add_path('/TemperatureType', 2)
-        self.temp_service.add_path('/CustomName', 'Baro Temp', writeable=True)
-        self.temp_service.add_path('/Humidity', 0)
-        self.temp_service.register()
+        self.service = VeDbusService('com.victronenergy.temperature.bme280_temp', register=False)
+        self.service.add_path('/Mgmt/ProcessName', 'bme280_service')
+        self.service.add_path('/Mgmt/ProcessVersion', '1.0')
+        self.service.add_path('/Mgmt/Connection', 'I2C')
+        self.service.add_path('/DeviceInstance', 30)
+        self.service.add_path('/ProductId', 0)
+        self.service.add_path('/ProductName', 'BME280 Sensor')
+        self.service.add_path('/FirmwareVersion', '1.0')
+        self.service.add_path('/Connected', 1)
+        self.service.add_path('/Temperature', 0)
+        self.service.add_path('/TemperatureType', 2)
+        self.service.add_path('/CustomName', 'Baro', writeable=True)
+        self.service.add_path('/Humidity', 0)
+        self.service.add_path('/Pressure', 0)
+        self.service.register()
         
         print('BME280 service started')
     
@@ -147,18 +147,17 @@ class BME280Service:
             pressure = round(pressure, 1)
             humidity = round(humidity, 1)
             
-            self.temp_service['/Temperature'] = temperature
-            self.temp_service['/Humidity'] = humidity
-            self.temp_service['/Connected'] = 1
-            
-            # Update custom name to show pressure
-            self.temp_service['/CustomName'] = f'Baro ({pressure} hPa)'
+            self.service['/Temperature'] = temperature
+            self.service['/Pressure'] = pressure
+            self.service['/Humidity'] = humidity
+            self.service['/CustomName'] = f'Baro ({pressure} hPa)'
+            self.service['/Connected'] = 1
             
             print(f'Temp: {temperature}°C | Humidity: {humidity}% | Pressure: {pressure} hPa')
             
         except Exception as e:
             print(f'Error reading BME280: {e}')
-            self.temp_service['/Connected'] = 0
+            self.service['/Connected'] = 0
         
         return True
 
