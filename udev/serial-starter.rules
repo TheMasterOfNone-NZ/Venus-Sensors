@@ -1,10 +1,10 @@
 ACTION=="add", SUBSYSTEM=="tty", SUBSYSTEMS=="platform|usb-serial", SYMLINK+="serial-starter/%k"
 ACTION=="remove", SUBSYSTEM=="tty", SUBSYSTEMS=="platform|usb-serial", RUN+="/opt/victronenergy/serial-starter/cleanup.sh %k"
 
-# Tank sensor on USB hub port 1-1.1.1.3 - ignore and create symlink
-ACTION=="add", SUBSYSTEM=="tty", KERNELS=="1-1.1.1.3:1.0", SYMLINK+="ttyTANK", ENV{VE_SERVICE}="ignore"
+# Tank sensor - use serial number for reliable detection
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{serial}=="AC01K1L6", SYMLINK+="ttyTANK", ENV{VE_SERVICE}="ignore"
 
-# Other FT232R on USB hub port 1-1.1.2.1 - set to default for auto-detection
+# Other FT232R on USB hub port - set to default for auto-detection
 ACTION=="add", SUBSYSTEM=="tty", KERNELS=="1-1.1.2.1:1.0", ENV{VE_SERVICE}="default"
 
 # The VE USB RS485 has a FT232R, but that chip can also rs232 etc, so also check default
