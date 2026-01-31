@@ -18,6 +18,9 @@ import dbus.mainloop.glib
 
 SETTINGS_FILE = '/data/dbus-tank-sensor/settings.json'
 SERIAL_PORT = '/dev/ttyTANK'
+SERIAL_BAUDRATE = 9600
+SERIAL_TIMEOUT = 3
+RECONNECT_DELAY = 5
 
 FLUID_TYPES = ['Fuel', 'Fresh Water', 'Waste Water', 'Live Well', 'Oil', 'Black Water']
 
@@ -164,6 +167,22 @@ def tank_process(tank_id, level_queue):
     mainloop.run()
 
 
+def open_serial():
+    """Open serial connection with error handling"""
+    try:
+        ser = serial.Serial(SERIAL_PORT, baudrate=SERIAL_BAUDRATE, timeout=SERIAL_TIMEOUT)
+        time.sleep(1)
+        ser.reset_input_buffer()
+        print(f'Serial connected: {SERIAL_PORT}')
+        return ser
+    except serial.SerialException as e:
+        print(f'Serial error opening {SERIAL_PORT}: {e}')
+        return None
+    except Exception as e:
+        print(f'Unexpected error opening serial: {e}')
+        return None
+
+
 def main():
     queues = [multiprocessing.Queue() for _ in range(4)]
     
@@ -178,11 +197,22 @@ def main():
     print('Multi-tank service started')
     print('Ground input = OFF, otherwise shows level')
     
-    ser = serial.Serial(SERIAL_PORT, baudrate=9600, timeout=3)
-    time.sleep(1)
-    ser.reset_input_buffer()
+    ser = None
     
     while True:
+        # Ensure serial connection is open
+        if ser is None or not ser.is_open:
+            if ser is not None:
+                try:
+                    ser.close()
+                except:
+                    pass
+            ser = open_serial()
+            if ser is None:
+                print(f'Retrying serial connection in {RECONNECT_DELAY}s...')
+                time.sleep(RECONNECT_DELAY)
+                continue
+        
         try:
             if ser.in_waiting > 0:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
@@ -193,6 +223,14 @@ def main():
                         value = line[len(prefix):]
                         queues[i].put(value)
                         break
+        except serial.SerialException as e:
+            print(f'Serial error: {e}')
+            try:
+                ser.close()
+            except:
+                pass
+            ser = None
+            time.sleep(RECONNECT_DELAY)
         except Exception as e:
             print(f'Error: {e}')
         
