@@ -1,4 +1,4 @@
 #!/bin/sh
 exec 2>&1
-sleep 5
+sleep 10
 exec /usr/bin/python3 /data/dbus-bme280/bme280_service.py
